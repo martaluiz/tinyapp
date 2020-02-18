@@ -60,10 +60,10 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-app.post("/urls", (req, res) => {
-  console.log(req.body);
-  let key = generateRandomString();
-  res.send({key});
+app.post("/urls/:shortURL/delete", (req, res) => {
+  let key = req.params.shortURL
+  delete urlDatabase[key];
+  res.redirect("/urls");
 });
 
 app.get("/urls/:shortURL", (req, res) => {
