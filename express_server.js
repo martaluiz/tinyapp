@@ -13,6 +13,20 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
+
 function generateRandomString() {
   let result           = '';
   let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -59,14 +73,14 @@ function generateRandomString() {
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
   };
   res.render("urls_new", templateVars);    
-});
+}); 
 
 app.get("/urls/:shortURL", (req, res) => {
     let templateVars = { shortURL: req.params.shortURL, longURL:urlDatabase[req.params.shortURL] ,
-      username : req.cookies["username"] };
+      user: users[req.cookies["user_id"]] };
     res.render("urls_show", templateVars );
 });
 
@@ -76,10 +90,57 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls", (req,res) => {
-  let templateVars = {  username : req.cookies["username"],
-                        urls : urlDatabase };
+  let templateVars = {  
+    user: users[req.cookies["user_id"]],
+    urls : urlDatabase 
+  };
   res.render('urls_index', templateVars);
 });
+
+
+//.......................... Registration page...........................................
+
+app.get("/register", (req, res) => {
+  res.render('register');
+})
+
+app.post("/register", (req, res) => {
+  let email = req.body.email;
+  let password = req.body.password;
+  let newUserID = generateRandomString();
+
+  if (email === "" || password === "") {
+    res.status(400).send("Please supply email and password");
+    return;
+  }
+  //functions to validate user's email and password
+  for (let property in users) {
+      if (email === users[property].email) {
+          res.status(400).send("Existing user email, please register");
+          return;
+      }
+  }
+
+  
+  //let hashedPassword = bcrypt.hashSync(password, 10)
+
+// adds the new user
+users[newUserID] = {
+    id: newUserID,
+    email: email,
+    password: password
+}
+
+
+ console.log(users);
+// new cookie for user 
+//req.session["user_id"] = newUserID;
+res
+.cookie("user_id", newUserID)
+.redirect('/urls');
+
+
+})
 
 //...................... POST Method ............................................
 
@@ -122,17 +183,36 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 //..........................Login..................................................
 
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
 app.post("/login", (req, res) => {
-  //console.log(req.body.userName);
-  res.cookie("username",req.body.username);
-  res.redirect("/urls");
+  let loginEmail = req.body.email;
+  let loginPassword = req.body.password;
+  for (let object in users) {
+      let user = users[object];
+      //if (loginEmail && user.email === loginEmail && bcrypt.compareSync(loginPassword, user.password)) {
+      
+      if (loginEmail === user.email && loginPassword === user.password) {
+        res.cookie["user_id"] = user.id;
+        let templateVars = {  
+          user: users[user.id],
+          urls : urlDatabase 
+        };
+          res.render("urls_index", templateVars);
+          return;
+      }
+  }
+
+  res.status(403);
+  res.send("Login does not exist.");
 });
 
 //...........................Logout.................................................
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('username');
-  // res.cookie("username",req.body.username);
+  res.clearCookie('user_id');
   res.redirect("/urls");
 });
 //....................... Listen................................................
