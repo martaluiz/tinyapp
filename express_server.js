@@ -1,29 +1,41 @@
 const express = require("express");
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
+//const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
+const bcrypt = require('bcrypt');
 
+
+cookieSession.key
 const app = express();
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['user_id']
+}));
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b6UTxQ": { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  "i3BoGr": { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
   },
   
  "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", 10)
+  },
+
+  "martaRandomId": {
+    id: "martaRandomId",
+    email: "martaluizavelino@gmail.com",
+    password: bcrypt.hashSync("teste", 10)
   }
 }
 
@@ -37,62 +49,64 @@ function generateRandomString() {
   return result;
 }
 
-//...................... GET Method ..........................................
-
-// app.get("/", (req, res) => {
-//   res.send("Hello!");
-// });
-
-// app.get("/hello", (req, res) => {
-//   res.send("<html><body>Hello <b>World</b></body></html>\n");
-// });
-
-// app.get("/urls.json", (req, res) => {
-//   res.json(urlDatabase);
-// });
-
-// app.get("/set", (req, res) => {
-//   const a = 1;
-//   res.send(`a = ${a}`);
-//  });
- 
-//  app.get("/fetch", (req, res) => {
-//   res.send(`a = ${a}`);
-//  });
-
-// app.get("/hello", (req, res) => {
-//   let templateVars = { greeting: 'Hello World!' };
-//   res.render("hello_world", templateVars);
-// });
-
-//  app.get("/urls", (req, res) => {
-//   let templateVars = { urls: urlDatabase };
-//   res.render("urls_index", templateVars);
-// });
-
 
 app.get("/urls/new", (req, res) => {
+
+  if(req.session.user_id === undefined){
+     res.redirect("/login");
+     return;
+  }
+
   let templateVars = {
-    user: users[req.cookies["user_id"]]
+    user: users[req.session.user_id]
   };
   res.render("urls_new", templateVars);    
 }); 
 
 app.get("/urls/:shortURL", (req, res) => {
-    let templateVars = { shortURL: req.params.shortURL, longURL:urlDatabase[req.params.shortURL] ,
-      user: users[req.cookies["user_id"]] };
+    let templateVars = { 
+      isLogged : isUserLogged(req.session.user_id),
+      shortURL: req.params.shortURL, 
+      longURL:urlDatabase[req.params.shortURL].longURL ,
+      user: users[req.session.user_id] 
+    };
     res.render("urls_show", templateVars );
 });
 
+
 app.get("/u/:shortURL", (req, res) => {
-   const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+ res.redirect(longURL);
 });
 
+function getUrls(user_id) {
+  let userUrls = {};
+  for(let object in urlDatabase){
+    if(urlDatabase[object].userID === user_id){
+      userUrls[object] = urlDatabase[object];
+    }
+  }
+  return userUrls;
+}
+
+function isUserLogged(user_id) {
+  let isLogged;
+  if(user_id === undefined){
+    isLogged = false;
+  } else {
+    isLogged = true;
+  }
+  return isLogged;
+}
+
 app.get("/urls", (req,res) => {
+  
+  let userUrls = getUrls(req.session.user_id);
+
   let templateVars = {  
-    user: users[req.cookies["user_id"]],
-    urls : urlDatabase 
+    user: users[req.session.user_id],
+    urls : userUrls,
+    isLogged : isUserLogged(req.session.user_id)
   };
   res.render('urls_index', templateVars);
 });
@@ -121,22 +135,19 @@ app.post("/register", (req, res) => {
       }
   }
 
-  
-  //let hashedPassword = bcrypt.hashSync(password, 10)
-
 // adds the new user
 users[newUserID] = {
     id: newUserID,
     email: email,
-    password: password
+    password: bcrypt.hashSync(password, 10)
 }
 
 
  console.log(users);
 // new cookie for user 
 //req.session["user_id"] = newUserID;
+res.session.user_id = newUserID;
 res
-.cookie("user_id", newUserID)
 .redirect('/urls');
 
 
@@ -153,23 +164,36 @@ res
 app.post("/urls", (req, res) => {
   shortURL = generateRandomString();
   longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
+  let objectUrl = { longURL: longURL, userID: req.session.user_id };
+  urlDatabase[shortURL] = objectUrl;
+  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
 
 //........................ Delete ..............................................
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  let key = req.params.shortURL
-  delete urlDatabase[key];
-  res.redirect("/urls");
+  let key = req.params.shortURL;
+  if (urlDatabase[key].userID === req.session.user_id ){
+    delete urlDatabase[key];
+    res.redirect("/urls");
+  } else {
+    res.status(403);
+    res.send("You are not authorized to delete this url!");
+  }
 });
 
 //............................ Edit ............................................
 
 app.post('/urls/:shortURL', (req, res) => {
-  urlDatabase[req.params.shortURL]["longURL"] = req.params.longURL;
+  let key = req.params.shortURL;
+  if (urlDatabase[key].userID === req.session.user_id ){
+    urlDatabase[req.params.shortURL]["longURL"] = req.params.longURL;
     res.redirect(`/urls/${req.params.shortURL}`);
+  } else {
+    res.status(403);
+    res.send("You are not authorized to edit this url!");
+  }
 });
 
 //................................Submit........................................
@@ -177,8 +201,14 @@ app.post('/urls/:shortURL', (req, res) => {
 // Update a longURL 
 app.post("/urls/:shortURL/edit", (req, res) => {
   let key = req.params.shortURL;
-  urlDatabase[key] = req.body.newlongURL;
-  res.redirect(`/urls/${key}`);
+  if (urlDatabase[key].userID === req.session.user_id ){
+    let key = req.params.shortURL;
+    urlDatabase[key].longURL = req.body.newlongURL;
+    res.redirect(`/urls/${key}`);
+  } else {
+    res.status(403);
+    res.send("You are not authorized to edit this url!");
+  }
 });
 
 //..........................Login..................................................
@@ -194,13 +224,14 @@ app.post("/login", (req, res) => {
       let user = users[object];
       //if (loginEmail && user.email === loginEmail && bcrypt.compareSync(loginPassword, user.password)) {
       
-      if (loginEmail === user.email && loginPassword === user.password) {
-        res.cookie["user_id"] = user.id;
-        let templateVars = {  
-          user: users[user.id],
-          urls : urlDatabase 
-        };
-          res.render("urls_index", templateVars);
+      if (loginEmail === user.email && bcrypt.compareSync(loginPassword, user.password)) {
+        
+        req.session.user_id = user.id;
+        // let templateVars = {  
+        //   user: users[user.id],
+        //   urls : urlDatabase 
+        // };
+          res.redirect("/urls");
           return;
       }
   }
@@ -212,7 +243,7 @@ app.post("/login", (req, res) => {
 //...........................Logout.................................................
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect("/urls");
 });
 //....................... Listen................................................
