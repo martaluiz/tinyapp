@@ -182,7 +182,6 @@ app.post("/login", (req, res) => {
       return;
     }
   }
-
   res.status(403);
   res.send("Login does not exist.");
 });
@@ -193,14 +192,9 @@ app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
+
 //....................... Listen................................................
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-
-// ------ YOU CAN DELETE AFTER .........
-app.get("/registered", (req, res) => {
-  res.send(users);
-})
