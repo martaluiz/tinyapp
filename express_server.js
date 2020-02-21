@@ -1,11 +1,9 @@
 const express = require("express");
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-//const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const { generateRandomString } = require('./helpers.js');
-const { getUserByEmail } = require('./helpers.js');
+const { generateRandomString, getUserByEmail, getUrls, isUserLogged } = require('./helpers.js');
 
 
 cookieSession.key
@@ -35,17 +33,9 @@ const users = {
     email: "user2@example.com",
     password: bcrypt.hashSync("dishwasher-funk", 10)
   },
-
-  "martaRandomId": {
-    id: "martaRandomId",
-    email: "martaluizavelino@gmail.com",
-    password: bcrypt.hashSync("teste", 10)
-  },
 }
 
 //...................................Urls...................................
-
-
 app.get("/urls/new", (req, res) => {
 
   if (req.session.user_id === undefined) {
@@ -60,6 +50,13 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+
+  if (urlDatabase[req.params.shortURL] === undefined ||
+    urlDatabase[req.params.shortURL].userID !== req.session.user_id) {
+    res.render('not_found');
+    return;
+  }
+
   let templateVars = {
     isLogged: isUserLogged(req.session.user_id),
     shortURL: req.params.shortURL,
@@ -70,41 +67,16 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
+  if (urlDatabase[req.params.shortURL] === undefined) {
+    res.render('not_found');
+    return;
+  }
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect("https://" + urlDatabase[shortURL].longURL);
-
 });
 
-// app.get("/u/:shortURL", function(req, res) {
-//   let shortURL = req.params.shortURL;
-//   // console.log("u/short", shortURL, urlDatabase[shortURL])
-//   res.redirect("https://" + urlDatabase[shortURL].longURL);
-// });
-
-function getUrls(user_id) {
-  let userUrls = {};
-  for (let object in urlDatabase) {
-    if (urlDatabase[object].userID === user_id) {
-      userUrls[object] = urlDatabase[object];
-    }
-  }
-  return userUrls;
-}
-
-function isUserLogged(user_id) {
-  let isLogged;
-  if (user_id === undefined) {
-    isLogged = false;
-  } else {
-    isLogged = true;
-  }
-  return isLogged;
-}
-
 app.get("/urls", (req, res) => {
-
-  let userUrls = getUrls(req.session.user_id);
-
+  let userUrls = getUrls(req.session.user_id, urlDatabase);
   let templateVars = {
     user: users[req.session.user_id],
     urls: userUrls,
@@ -123,49 +95,31 @@ app.post("/register", (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
   let newUserID = generateRandomString();
-  console.log(email, password, newUserID);
-
   if (email === "" || password === "") {
     res.status(400).send("Please supply email and password");
     return;
   }
-
-  //functions to validate user's email and password
-  for (let property in users) {
-    if (email === users[property].email) {
-      res.status(400).send("Existing user email, please register");
-      return;
-    }
+  let existingUser = getUserByEmail(email, users);
+  if (existingUser != undefined) {
+    res.status(400).send("Existing user email, please register");
+    return;
   }
-
-  // adds the new user
+  // Add new user
   users[newUserID] = {
     id: newUserID,
     email: email,
     password: bcrypt.hashSync(password, 10)
   }
-  console.log(users);
-  // new cookie for user 
-  //req.session["user_id"] = newUserID;
-  // res.session[user_id] = newUserID;
   res.redirect('/urls');
-
 });
 
 //...................... POST Method ............................................
-
-// app.post("/urls", (req, res) => {
-//   console.log(req.body);
-//   let key = generateRandomString();
-//   res.send({key});
-// });
 
 app.post("/urls", (req, res) => {
   shortURL = generateRandomString();
   longURL = req.body.longURL;
   let objectUrl = { longURL: longURL, userID: req.session.user_id };
   urlDatabase[shortURL] = objectUrl;
-  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -195,7 +149,8 @@ app.post('/urls/:shortURL', (req, res) => {
   }
 });
 
-// Update a longURL 
+// ...................... Update a longURL 
+
 app.post("/urls/:shortURL/edit", (req, res) => {
   let key = req.params.shortURL;
   if (urlDatabase[key].userID === req.session.user_id) {
@@ -219,7 +174,6 @@ app.post("/login", (req, res) => {
   let loginPassword = req.body.password;
   for (let object in users) {
     let user = users[object];
-    //if (loginEmail && user.email === loginEmail && bcrypt.compareSync(loginPassword, user.password)) {
 
     if (loginEmail === user.email && bcrypt.compareSync(loginPassword, user.password)) {
 

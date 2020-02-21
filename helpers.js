@@ -11,15 +11,35 @@ function generateRandomString() {
   return result;
 }
 
-// //-----returns true if email already exists in database-------
+function getUserByEmail(email, users) {
+  for (let user in users) {
+    if (email === users[user].email) {
+      return users[user];
+    }
+  }
+  return undefined;
+}
 
-// function getUserByEmail(email, users) {
-//   for (let user in users) {
-//     if (users[user].email === email) {
-//       return users[user].id;
-//     }
-//   }
-//   return false;
-// }
+function getUrls(user_id, urlDatabase) {
+  let userUrls = {};
+  for (let object in urlDatabase) {
+    if (urlDatabase[object].userID === user_id) {
+      userUrls[object] = urlDatabase[object];
+    }
+  }
+  return userUrls;
+}
 
-module.exports = { generateRandomString };
+function isUserLogged(user_id) {
+  let isLogged;
+  if (user_id === undefined) {
+    isLogged = false;
+  } else {
+    isLogged = true;
+  }
+  return isLogged;
+}
+
+module.exports = { generateRandomString, getUserByEmail, getUrls, isUserLogged };
+
+
