@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
   <title>TinyApp</title>
 </head>
 
@@ -15,13 +17,21 @@
 </header>
 
 <body>
-  
-  <h2 style="margin: 1em">Create Account: </h2>
-  <form style="margin: 1em" action="/register" method="POST">
-    <p><h5>Email address:</h5>
-      <input type="email" name="email" placeholder="email"></p>
-    <p><h5>Password:</h5>
-      <input type="password" name="password" placeholder="password"></p> <br>
-    <p><button type="submit" class="btn btn-dark">Submit</button></p>
-  </form>
+  <div class="container"></div>
+  <fieldset style="width:300px; margin:0px auto;"><br>
+    <p class="h4 mb-4">
+      <h1>Register</h1>
+    </p><br>
+    <h2 style="margin: 0em">Create Account: </h2><br>
+    <form style="margin: 1em" action="/register" method="POST">
+      <p>
+        <h5>Email address:</h5>
+        <input type="email" name="email" placeholder="email">
+      </p>
+      <p>
+        <h5>Password:</h5>
+        <input type="password" name="password" placeholder="password">
+      </p> <br>
+      <p><button type="submit" class="btn btn-dark">Submit</button></p>
+    </form>
 </body>

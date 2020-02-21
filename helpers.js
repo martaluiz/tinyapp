@@ -2,10 +2,10 @@ const bcrypt = require('bcrypt');
 
 //.....function returns a string of 6 alphanumeric characters....
 function generateRandomString() {
-  let result           = '';
-  let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let charactersLength = characters.length;
-  for ( let i = 0; i < 6; i++ ) {
+  for (let i = 0; i < 6; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
@@ -22,4 +22,4 @@ function generateRandomString() {
 //   return false;
 // }
 
-module.exports = {generateRandomString};
+module.exports = { generateRandomString };
