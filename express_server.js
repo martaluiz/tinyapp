@@ -4,6 +4,8 @@ const bodyParser = require("body-parser");
 //const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
+const {generateRandomString }= require('./helpers.js');
+const {getUserByEmail} = require('./helpers.js');
 
 
 cookieSession.key
@@ -21,9 +23,11 @@ const urlDatabase = {
 };
 
 const users = {
+  
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
+    password: bcrypt.hashSync ("purple-monkey-dinosaur", 10),
   },
   
  "user2RandomID": {
@@ -36,18 +40,10 @@ const users = {
     id: "martaRandomId",
     email: "martaluizavelino@gmail.com",
     password: bcrypt.hashSync("teste", 10)
-  }
+  },
 }
 
-function generateRandomString() {
-  let result           = '';
-  let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let charactersLength = characters.length;
-  for ( let i = 0; i < 6; i++ ) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-}
+//...................................Urls...................................
 
 
 app.get("/urls/new", (req, res) => {
@@ -72,7 +68,6 @@ app.get("/urls/:shortURL", (req, res) => {
     };
     res.render("urls_show", templateVars );
 });
-
 
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
@@ -111,7 +106,6 @@ app.get("/urls", (req,res) => {
   res.render('urls_index', templateVars);
 });
 
-
 //.......................... Registration page...........................................
 
 app.get("/register", (req, res) => {
@@ -122,11 +116,13 @@ app.post("/register", (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
   let newUserID = generateRandomString();
+  console.log(email,password,newUserID);
 
   if (email === "" || password === "") {
     res.status(400).send("Please supply email and password");
     return;
   }
+
   //functions to validate user's email and password
   for (let property in users) {
       if (email === users[property].email) {
@@ -141,17 +137,13 @@ users[newUserID] = {
     email: email,
     password: bcrypt.hashSync(password, 10)
 }
-
-
  console.log(users);
 // new cookie for user 
 //req.session["user_id"] = newUserID;
-res.session.user_id = newUserID;
-res
-.redirect('/urls');
+// res.session[user_id] = newUserID;
+res.redirect('/urls');
 
-
-})
+});
 
 //...................... POST Method ............................................
 
@@ -196,8 +188,6 @@ app.post('/urls/:shortURL', (req, res) => {
   }
 });
 
-//................................Submit........................................
-
 // Update a longURL 
 app.post("/urls/:shortURL/edit", (req, res) => {
   let key = req.params.shortURL;
@@ -226,13 +216,9 @@ app.post("/login", (req, res) => {
       
       if (loginEmail === user.email && bcrypt.compareSync(loginPassword, user.password)) {
         
-        req.session.user_id = user.id;
-        // let templateVars = {  
-        //   user: users[user.id],
-        //   urls : urlDatabase 
-        // };
-          res.redirect("/urls");
-          return;
+      req.session.user_id = user.id;
+        res.redirect("/urls");
+         return;
       }
   }
 
@@ -251,3 +237,9 @@ app.post("/logout", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+
+// ------ YOU CAN DELETE AFTER .........
+app.get("/registered", (req, res) => {
+  res.send(users);
+})

@@ -5,6 +5,7 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
   <title>URL - TinyApp Example</title>
 </head>
+<%- include('./partials/_header') %>
 <body>
   <% if (!isLogged) { %>
     You must login to see this page.
@@ -20,7 +21,7 @@
       <form method="POST" action="/urls/<%= shortURL %>/edit" >
       <label>New URL:</label>
       <input type="text" name="newlongURL" placeholder="<%= longURL %>"/>
-      <button class="btn btn-primary" type="submit">submit</button>
+      <button class="btn btn-dark" type="submit">submit</button>
     </form>
   </div>
   <% }%>
