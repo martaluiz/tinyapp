@@ -72,7 +72,14 @@ app.get("/u/:shortURL", (req, res) => {
     return;
   }
   const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect("https://" + urlDatabase[shortURL].longURL);
+  
+  if (longURL.startsWith("http://") || longURL.startsWith("https://")) {
+    res.redirect(longURL);
+
+  } else {
+    res.redirect("https://" + longURL);
+  }
+
 });
 
 app.get("/urls", (req, res) => {
@@ -85,6 +92,10 @@ app.get("/urls", (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+app.get("/", (req, res) => {
+  res.redirect("/login");
+});
+
 //.......................... Registration page...........................................
 
 app.get("/register", (req, res) => {
@@ -95,6 +106,7 @@ app.post("/register", (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
   let newUserID = generateRandomString();
+  //if email already in use
   if (email === "" || password === "") {
     res.status(400).send("Please supply email and password");
     return;
@@ -110,6 +122,7 @@ app.post("/register", (req, res) => {
     email: email,
     password: bcrypt.hashSync(password, 10)
   }
+  req.session.user_id = newUserID;
   res.redirect('/urls');
 });
 
