@@ -98,22 +98,25 @@ app.get("/", (req, res) => {
 
 //.......................... Registration page...........................................
 
+//Render the register page.
 app.get("/register", (req, res) => {
   res.render('register');
 })
 
+//Handle registration page info
 app.post("/register", (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
   let newUserID = generateRandomString();
-  //if email already in use
+  
+  //Check for empty string
   if (email === "" || password === "") {
     res.status(400).send("Please supply email and password");
     return;
   }
   let existingUser = getUserByEmail(email, users);
   if (existingUser != undefined) {
-    res.status(400).send("Existing user email, please register");
+    res.status(400).send("Existing user email, please register");  //if email already in use
     return;
   }
   // Add new user
@@ -178,6 +181,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 //..........................Login..................................................
 
+//Render the login page.
 app.get("/login", (req, res) => {
   res.render("login");
 });
@@ -201,7 +205,8 @@ app.post("/login", (req, res) => {
 
 //...........................Logout.................................................
 
-app.post("/logout", (req, res) => {
+
+app.post("/logout", (req, res) => { //Delete the id cookie and log the user out (ie redirect to /urls)
   req.session = null;
   res.redirect("/urls");
 });
