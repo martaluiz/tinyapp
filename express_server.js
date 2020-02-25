@@ -8,7 +8,7 @@ const { generateRandomString, getUserByEmail, getUrls, isUserLogged } = require(
 
 cookieSession.key
 const app = express();
-app.set("view engine", "ejs");
+app.set("view engine", "ejs"); //set ejs as the view engine
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: 'session',
@@ -20,6 +20,7 @@ const urlDatabase = {
   "i3BoGr": { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
+// All users from registration page.
 const users = {
 
   "userRandomID": {
@@ -36,6 +37,8 @@ const users = {
 }
 
 //...................................Urls...................................
+
+//Generate a new short URL from a long ULR
 app.get("/urls/new", (req, res) => {
 
   if (req.session.user_id === undefined) {
@@ -82,6 +85,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 });
 
+// URLs page showing user's generate short/long URL.
 app.get("/urls", (req, res) => {
   let userUrls = getUrls(req.session.user_id, urlDatabase);
   let templateVars = {
@@ -92,6 +96,7 @@ app.get("/urls", (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+//Homepage takes you to login page
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
@@ -132,7 +137,7 @@ app.post("/register", (req, res) => {
 //...................... POST Method ............................................
 
 app.post("/urls", (req, res) => {
-  shortURL = generateRandomString();
+  shortURL = generateRandomString(); // call randomString to generate short URL.
   longURL = req.body.longURL;
   let objectUrl = { longURL: longURL, userID: req.session.user_id };
   urlDatabase[shortURL] = objectUrl;
@@ -141,6 +146,7 @@ app.post("/urls", (req, res) => {
 
 //........................ Delete ..............................................
 
+//redirect after delete
 app.post("/urls/:shortURL/delete", (req, res) => {
   let key = req.params.shortURL;
   if (urlDatabase[key].userID === req.session.user_id) {
@@ -205,6 +211,7 @@ app.post("/login", (req, res) => {
 
 //...........................Logout.................................................
 
+//redirect after logout
 
 app.post("/logout", (req, res) => { //Delete the id cookie and log the user out (ie redirect to /urls)
   req.session = null;

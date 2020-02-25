@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 
-//.....function returns a string of 6 alphanumeric characters....
+//.....function returns a string of 6 alphanumeric characters.
 function generateRandomString() {
   let result = '';
   let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -20,6 +20,7 @@ function getUserByEmail(email, users) {
   return undefined;
 }
 
+//loops through the data and checks to see if the value of user_id is qual to id
 function getUrls(user_id, urlDatabase) {
   let userUrls = {};
   for (let object in urlDatabase) {
