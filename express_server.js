@@ -75,7 +75,7 @@ app.get("/u/:shortURL", (req, res) => {
     return;
   }
   const longURL = urlDatabase[req.params.shortURL].longURL;
-  
+
   if (longURL.startsWith("http://") || longURL.startsWith("https://")) {
     res.redirect(longURL);
 
@@ -113,7 +113,7 @@ app.post("/register", (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
   let newUserID = generateRandomString();
-  
+
   //Check for empty string
   if (email === "" || password === "") {
     res.status(400).send("Please supply email and password");
@@ -171,7 +171,7 @@ app.post('/urls/:shortURL', (req, res) => {
   }
 });
 
-// ...................... Update a longURL 
+// ...................... Update a longURL..........................................
 
 app.post("/urls/:shortURL/edit", (req, res) => {
   let key = req.params.shortURL;
