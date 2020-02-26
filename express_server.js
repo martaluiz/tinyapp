@@ -38,7 +38,7 @@ const users = {
 
 //...................................Urls...................................
 
-//Generate a new short URL from a long ULR
+//Render the page to create a new Url
 app.get("/urls/new", (req, res) => {
 
   if (req.session.user_id === undefined) {
@@ -52,6 +52,8 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+// This get returns the page for edition of the url.
+// it checks if the shorturl exist in order to render the page
 app.get("/urls/:shortURL", (req, res) => {
 
   if (urlDatabase[req.params.shortURL] === undefined ||
@@ -69,6 +71,7 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+// Redirect the shortUrl to longUrl
 app.get("/u/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL] === undefined) {
     res.render('not_found');
@@ -76,6 +79,7 @@ app.get("/u/:shortURL", (req, res) => {
   }
   const longURL = urlDatabase[req.params.shortURL].longURL;
 
+  // It appends https in case longUrl doesn't have http on the URL.
   if (longURL.startsWith("http://") || longURL.startsWith("https://")) {
     res.redirect(longURL);
 
@@ -85,7 +89,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 });
 
-// URLs page showing user's generate short/long URL.
+// URLs page showing user's Url's list.
 app.get("/urls", (req, res) => {
   let userUrls = getUrls(req.session.user_id, urlDatabase);
   let templateVars = {
@@ -103,12 +107,12 @@ app.get("/", (req, res) => {
 
 //.......................... Registration page...........................................
 
-//Render the register page.
+//It renders the register page.
 app.get("/register", (req, res) => {
   res.render('register');
 })
 
-//Handle registration page info
+//It handles registration page info
 app.post("/register", (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
@@ -187,7 +191,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 //..........................Login..................................................
 
-//Render the login page.
+// It renders the login page.
 app.get("/login", (req, res) => {
   res.render("login");
 });
